@@ -225,12 +225,16 @@ $(function () {
     var sensorsURL = senseBoxURL + "/sensors";
     requestJSON(sensorsURL, function(box_sensors) {
         $.each(box_sensors.sensors, function (i, sensor) {
-            if (sensor.lastMeasurement && (!sensors || sensors.includes(sensor._id))) {
-                var chart = $('<div class="chart"></div>').appendTo('#container');
-                var sensorURL = senseBoxURL + "/data/" + sensor._id;
-                requestJSON(sensorURL, function(dataset) {
-                    create_chart(i, chart, sensor, dataset);
-                });
+            if (!sensors || sensors.includes(sensor._id)) {
+                if (sensor.lastMeasurement != null) {
+                    var chart = $('<div class="chart"></div>').appendTo('#container');
+                    var sensorURL = senseBoxURL + "/data/" + sensor._id;
+                    requestJSON(sensorURL, function(dataset) {
+                        create_chart(i, chart, sensor, dataset);
+                    });
+                } else {
+                    var error = $('<div class="chart"> Der ' + sensor.sensorType + "-Sensor \""+ sensor._id + "\" f&uuml;r " + sensor.title + ' liefert keine Werte.</div>').appendTo('#container');
+                }
             }
         });
     });
