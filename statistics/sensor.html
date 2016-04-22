@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Highcharts Example</title>
+
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<style type="text/css">
+.chart {
+    min-width: 320px;
+    max-width: 800px;
+    height: 220px;
+    margin: 0 auto;
+}
+</style>
+<!-- http://doc.jsfiddle.net/use/hacks.html#css-panel-hack -->
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+		</style>
+		<script type="text/javascript">
+/*
+The purpose of this demo is to demonstrate how multiple charts on the same page can be linked
+through DOM and Highcharts events and API methods. It takes a standard Highcharts config with a
+small variation for each data set, and a mouse/touch event handler to bind the charts together.
+*/
+
+$(function () {
+
+    /**
+     * In order to synchronize tooltips and crosshairs, override the
+     * built-in events with handlers defined on the parent element.
+     */
+    $('#container').bind('mousemove touchmove touchstart', function (e) {
+        var chart,
+            point,
+            i,
+            event;
+
+        for (i = 0; i < Highcharts.charts.length; i = i + 1) {
+            chart = Highcharts.charts[i];
+            event = chart.pointer.normalize(e.originalEvent); // Find coordinates within the chart
+            point = chart.series[0].searchPoint(event, true); // Get the hovered point
+
+            if (point) {
+                point.onMouseOver(); // Show the hover marker
+                chart.tooltip.refresh(point); // Show the tooltip
+                chart.xAxis[0].drawCrosshair(event, point); // Show the crosshair
+            }
+        }
+    });
+    /**
+     * Override the reset function, we don't need to hide the tooltips and crosshairs.
+     */
+    Highcharts.Pointer.prototype.reset = function () {
+        return undefined;
+    };
+
+    /**
+     * Synchronize zooming through the setExtremes event handler.
+     */
+    function syncExtremes(e) {
+        var thisChart = this.chart;
+
+        if (e.trigger !== 'syncExtremes') { // Prevent feedback loop
+            Highcharts.each(Highcharts.charts, function (chart) {
+                if (chart !== thisChart) {
+                    if (chart.xAxis[0].setExtremes) { // It is null while updating
+                        chart.xAxis[0].setExtremes(e.min, e.max, undefined, false, { trigger: 'syncExtremes' });
+                    }
+                }
+            });
+        }
+    }
+    
+    function getQueryParams(qs) {
+        // from http://stackoverflow.com/a/1099670/1320237
+        qs = qs.split("+").join(" ");
+        var params = {}, tokens,
+            re = /[?&]?([^=]+)=([^&]*)/g;
+        while (tokens = re.exec(qs)) {
+            params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+        }
+        return params;
+    }
+    
+    
+    function requestJSON(url, callback) {
+        var xhttp;
+        if (window.XMLHttpRequest) {
+         xhttp = new XMLHttpRequest();
+        } else {
+         xhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+         
+        xhttp.onreadystatechange = function() {
+          // xhttp.readyState
+          // http://www.w3schools.com/Ajax/ajax_xmlhttprequest_onreadystatechange.asp
+          if (xhttp.readyState == 4) {
+            console.log("URL: " + url);
+            console.log("RESPONSE: " + xhttp.response);
+            var response = JSON.parse(xhttp.response);
+            console.log("calling calback");
+            callback(response);
+          }
+        };
+        xhttp.open("GET", url, true);
+        xhttp.send();
+    }
+    
+    function create_chart(i, chart, sensor, dataset) {
+        var dates = Highcharts.map(dataset, function (val, j) {
+                var date = new Date();
+                date.setISO8601(val.createdAt);
+                return date.getTime();
+            });
+        var data = Highcharts.map(dataset, function (val, j) {
+                return [dates[j], parseFloat(val.value)];
+            });
+        chart.highcharts({
+            chart: {
+                marginLeft: 40, // Keep all charts left aligned
+                spacingTop: 20,
+                spacingBottom: 20
+            },
+            title: {
+                text: sensor.title + " - " + sensor.sensorType,
+                align: 'left',
+                margin: 0,
+                x: 30
+            },
+            credits: {
+                enabled: false
+            },
+            legend: {
+                enabled: false
+            },
+            xAxis: {
+                crosshair: true,
+                events: {
+                    setExtremes: syncExtremes
+                },
+                type: 'datetime',
+                labels: {
+                    format: '{value:%Y-%m-%d %H:%M}',
+                    rotation: 45,
+                    align: 'left'
+                },
+                reversed: true
+            },
+            yAxis: {
+                title: {
+                    text: null
+                }
+            },
+            tooltip: {
+                positioner: function () {
+                    return {
+                        x: this.chart.chartWidth - this.label.width, // right aligned
+                        y: -1 // align to title
+                    };
+                },
+                borderWidth: 0,
+                backgroundColor: 'none',
+                pointFormat: '{point.y}',
+                headerFormat: '',
+                shadow: false,
+                style: {
+                    fontSize: '18px'
+                },
+                valueDecimals: 1 // TODO: adjust digits behind comma
+            },
+            series: [{
+                data: data,
+                name: sensor.title,
+                type: "line",
+                color: Highcharts.getOptions().colors[i],
+                fillOpacity: 0.3,
+                tooltip: {
+                    valueSuffix: ' ' + sensor.unit
+                },
+                pointStart: dates[0]
+            }]
+        });
+    }
+    
+    Date.prototype.setISO8601 = function (string) {
+        // from http://stackoverflow.com/a/6195915/1320237
+        var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
+            "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
+            "(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?";
+        var d = string.match(new RegExp(regexp));
+
+        var offset = 0;
+        var date = new Date(d[1], 0, 1);
+
+        if (d[3]) { date.setMonth(d[3] - 1); }
+        if (d[5]) { date.setDate(d[5]); }
+        if (d[7]) { date.setHours(d[7]); }
+        if (d[8]) { date.setMinutes(d[8]); }
+        if (d[10]) { date.setSeconds(d[10]); }
+        if (d[12]) { date.setMilliseconds(Number("0." + d[12]) * 1000); }
+        if (d[14]) {
+            offset = (Number(d[16]) * 60) + Number(d[17]);
+            offset *= ((d[15] == '-') ? 1 : -1);
+        }
+
+        offset -= date.getTimezoneOffset();
+        time = (Number(date) + (offset * 60 * 1000));
+        this.setTime(Number(time));
+    }
+
+    // Get the data. The contents of the data file can be viewed at
+    var parameters = getQueryParams(document.location.search);
+    var senseBoxID = parameters.senseBoxID;
+    var sensors = parameters.sensors;
+    if (!senseBoxID) {
+        alert("Please set the parameter senseBoxID!");
+    }
+    var box;
+    var senseBoxURL = "http://demoapi.opensensemap.org/boxes/" + senseBoxID;
+    var sensorsURL = senseBoxURL + "/sensors";
+    requestJSON(sensorsURL, function(_box) {
+        box = _box;
+        //var i = 0;
+        //var sensor = box.sensors[0];
+        $.each(box.sensors, function (i, sensor) {
+            if (sensor.lastMeasurement) {
+                var chart = $('<div class="chart"></div>').appendTo('#container');
+                var sensorURL = senseBoxURL + "/data/" + sensor._id;
+                requestJSON(sensorURL, function(dataset) {
+                    create_chart(i, chart, sensor, dataset);
+                });
+            }
+        });
+    });
+});
+		</script>
+	</head>
+	<body>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<div id="container"></div>
+	</body>
+</html>
