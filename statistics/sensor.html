@@ -81,7 +81,7 @@ $(function () {
             Highcharts.each(Highcharts.charts, function (chart) {
                 if (chart !== thisChart) {
                     if (chart.xAxis[0].setExtremes) { // It is null while updating
-                        chart.xAxis[0].setExtremes(e.min, e.max, undefined, false, { trigger: 'syncExtremes' });
+                        //chart.xAxis[0].setExtremes(e.min, e.max, undefined, false, { trigger: 'syncExtremes' });
                     }
                 }
             });
@@ -127,39 +127,29 @@ $(function () {
         var date = new Date();
         date.setISO8601(measurement.createdAt);
         var local_time = date.getTime() - timeZoneOffsetMillis;
-        var time_rounded = Math.round(local_time / 10000) * 10000;
-        return time_rounded;
+        return local_time;
     }
     
     function get_value(measurement) {
         return parseFloat(measurement.value)
     }
     
-    var all_dates_sorted = [];
+    var minimum_date = null;
+    var maximum_date = null;
     function add_date(date) {
-        var lower = 0;
-        var upper = all_dates_sorted.length;
-        while (lower < upper)
-        {
-            var middle = Math.floor((lower + upper) / 2);
-            var middle_value = all_dates_sorted[middle]
-            if (date < middle_value) {
-                upper = middle;
-            } else if (date > middle_value) {
-                lower = middle + 1;
-            } else {
-                return;
-            }
-        }
-        all_dates_sorted.splice(lower, 0, date);
+        if (minimum_date == null || date < minimum_date) {
+            minimum_date = date;
+        } else if (maximum_date == null || maximum_date < date) {
+            maximum_date = date;
+        };
     }
 
     var charts = [];
     
     function update_charts() {
-        for (var i = 0; i < charts.length; i += 1) {
-            charts[i].xAxis.setExtremes(all_dates_sorted[0], all_dates_sorted[all_dates_sorted.length - 1])
-        }
+            Highcharts.each(Highcharts.charts, function (chart) {
+                chart.xAxis[0].setExtremes(minimum_date, maximum_date);
+            });
     }
     
     function create_chart(i, chart, sensor, measurements) {
