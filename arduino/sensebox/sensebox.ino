@@ -75,7 +75,7 @@ void setup() {
   HDC.begin(HDC100X_TEMP_HUMI,HDC100X_14BIT,HDC100X_14BIT,DISABLE);
   TSL.begin();
   BMP.begin();
-  BMP.setOversampling(4);
+  BMP.setOversampling(2);
   Serial.println("done!");
   Serial.println("Starting loop.");
   temperature = HDC.getTemp();
