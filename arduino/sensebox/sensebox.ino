@@ -46,8 +46,8 @@ int messTyp;
 #define UV_ADDR 0x38
 #define IT_1   0x1
 
-unsigned long oldTime = 0;
 const unsigned long postingInterval = 60000;
+unsigned long oldTime = -postingInterval;
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -88,7 +88,6 @@ void loop()
   if (client.available()) {
     char c = client.read();
     Serial.print(c);
-    //Serial.write(c);
   }
 
   if (millis() - oldTime > postingInterval) {
@@ -101,15 +100,17 @@ void loop()
       delay(result);
       result = BMP.getTemperatureAndPressure(tempBaro,pressure);
       postObservation(pressure, PRESSURESENSOR_ID, SENSEBOX_ID); 
-      //Serial.print("Temp_baro = ");Serial.println(tempBaro,2);
-      //Serial.print("Pressure  = ");Serial.println(pressure,2);
+      Serial.print("Temp_baro = ");Serial.println(tempBaro,2);
+      Serial.print("Pressure  = ");Serial.println(pressure,2);
+    } else {
+      Serial.print("Error: ");Serial.println((int)BMP.getError());
     }
     delay(2000); 
     //-----Humidity-----//
     Serial.println("Posting humidity");
     messTyp = 2;
     humidity = HDC.getHumi();
-    //Serial.print("Humidity = "); Serial.println(humidity);
+    Serial.print("Humidity = "); Serial.println(humidity);
     postObservation(humidity, HUMISENSOR_ID, SENSEBOX_ID); 
     delay(2000);
     //-----Temperature-----//
@@ -117,19 +118,20 @@ void loop()
     messTyp = 2;
     temperature = HDC.getTemp();
     //Serial.println(temperature,2);
-    //Serial.print("Temperature = ");Serial.println(temperature);
+    Serial.print("Temperature = ");Serial.println(temperature);
     postObservation(temperature, TEMPSENSOR_ID, SENSEBOX_ID); 
     delay(2000);  
     //-----Lux-----//
     Serial.println("Posting illuminance");
     messTyp = 1;
     lux = TSL.readLux();
-    //Serial.print("Illumi = "); Serial.println(lux);
+    Serial.print("Illumi = "); Serial.println(lux);
     postObservation(lux, LUXSENSOR_ID, SENSEBOX_ID);
     delay(2000);
     //UV intensity
     messTyp = 1;
     uv = getUV();
+    Serial.print("UV = "); Serial.println(uv);
     postObservation(uv, UVSENSOR_ID, SENSEBOX_ID);
   }
 }
