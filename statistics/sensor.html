@@ -18,11 +18,27 @@
 <style>
 		</style>
 		<script type="text/javascript">
-/*
-The purpose of this demo is to demonstrate how multiple charts on the same page can be linked
-through DOM and Highcharts events and API methods. It takes a standard Highcharts config with a
-small variation for each data set, and a mouse/touch event handler to bind the charts together.
-*/
+
+var all_dates_sorted = [];
+function add_date(date) {
+    var lower = 0;
+    var upper = all_dates_sorted.length;
+    while (lower < upper)
+    {
+        var middle = Math.floor((lower + upper) / 2);
+        var middle_value = all_dates_sorted[middle]
+        if (date < middle_value) {
+            upper = middle;
+        } else if (date > middle_value) {
+            lower = middle + 1;
+        } else {
+            return;
+        }
+    }
+    all_dates_sorted.splice(lower, 0, date);
+}
+
+var charts = [];
 
 $(function () {
 
@@ -107,15 +123,54 @@ $(function () {
         xhttp.send();
     }
     
-    function create_chart(i, chart, sensor, dataset) {
-        var dates = Highcharts.map(dataset, function (val, j) {
-                var date = new Date();
-                date.setISO8601(val.createdAt);
-                return date.getTime() - timeZoneOffsetMillis;
-            });
-        var data = Highcharts.map(dataset, function (val, j) {
-                return [dates[j], parseFloat(val.value)];
-            });
+    function get_date(measurement) {
+        var date = new Date();
+        date.setISO8601(measurement.createdAt);
+        var local_time = date.getTime() - timeZoneOffsetMillis;
+        var time_rounded = Math.round(local_time / 10000) * 10000;
+        return time_rounded;
+    }
+    
+    function get_value(measurement) {
+        return parseFloat(measurement.value)
+    }
+    
+    var all_dates_sorted = [];
+    function add_date(date) {
+        var lower = 0;
+        var upper = all_dates_sorted.length;
+        while (lower < upper)
+        {
+            var middle = Math.floor((lower + upper) / 2);
+            var middle_value = all_dates_sorted[middle]
+            if (date < middle_value) {
+                upper = middle;
+            } else if (date > middle_value) {
+                lower = middle + 1;
+            } else {
+                return;
+            }
+        }
+        all_dates_sorted.splice(lower, 0, date);
+    }
+
+    var charts = [];
+    
+    function update_charts() {
+        for (var i = 0; i < charts.length; i += 1) {
+            charts[i].xAxis.setExtremes(all_dates_sorted[0], all_dates_sorted[all_dates_sorted.length - 1])
+        }
+    }
+    
+    function create_chart(i, chart, sensor, measurements) {
+        var data = Array(measurements.length);
+        for (var i = 0; i < measurements.length; i += 1) {
+            measurement = measurements[i];
+            var date = get_date(measurement);
+            var value = get_value(measurement);
+            add_date(date);
+            data[i] = [date, value];
+        }
         chart.highcharts({
             chart: {
                 marginLeft: 40, // Keep all charts left aligned
@@ -172,15 +227,16 @@ $(function () {
             series: [{
                 data: data,
                 name: sensor.title,
-                type: "line",
+                type: "scatter",
                 color: Highcharts.getOptions().colors[i],
                 fillOpacity: 0.3,
                 tooltip: {
                     valueSuffix: ' ' + sensor.unit
                 },
-                pointStart: dates[0]
+                pointStart: data[0]
             }]
         });
+        update_charts();
     }
     
     var timeZoneOffsetMillis = (new Date()).getTimezoneOffset() * 60 * 1000;
@@ -232,13 +288,14 @@ $(function () {
                     requestJSON(sensorURL, function(dataset) {
                         create_chart(i, chart, sensor, dataset);
                     });
+                    charts.push(chart);
+                    chart.update = function(){};
                 } else {
                     var error = $('<div class="chart"> Der ' + sensor.sensorType + "-Sensor \""+ sensor._id + "\" f&uuml;r " + sensor.title + ' liefert keine Werte.</div>').appendTo('#container');
                 }
             }
         });
     });
-    
 });
 		</script>
 	</head>
