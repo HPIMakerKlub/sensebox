@@ -164,7 +164,7 @@ $(function () {
             });
     }
     
-    function create_chart(i, chart, sensor, measurements) {
+    function create_chart(index, chart, sensor, measurements) {
         var data = Array(measurements.length);
         for (var i = 0; i < measurements.length; i += 1) {
             measurement = measurements[i];
@@ -231,7 +231,7 @@ $(function () {
                 data: data,
                 name: sensor.title,
                 type: "scatter",
-                color: Highcharts.getOptions().colors[i],
+                color: Highcharts.getOptions().colors[index],
                 fillOpacity: 0.3,
                 tooltip: {
                     valueSuffix: ' ' + sensor.unit
