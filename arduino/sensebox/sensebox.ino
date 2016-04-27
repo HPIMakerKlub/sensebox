@@ -14,6 +14,7 @@ Email: support@sensebox.de
 #include <Makerblog_TSL45315.h>
 #include <SPI.h>
 #include <Ethernet.h>
+#include <avr/pgmspace.h>
 
 //SenseBox ID
 #define SENSEBOX_ID "5719c4037514d05c121e317c"
@@ -53,20 +54,20 @@ void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   // start the Ethernet connection:
-  Serial.println("SenseBox Home software version 2.1");
+  Serial.println(F("SenseBox Home software version 2.1"));
   Serial.println();
-  Serial.print("Starting ethernet connection...");
+  Serial.print(F("Starting ethernet connection..."));
   if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
+    Serial.println(F("Failed to configure Ethernet using DHCP"));
     Ethernet.begin(mac, myIp);
   }
-  Serial.print("IP: ");
+  Serial.print(F("IP: "));
   Serial.print(Ethernet.localIP());
-  Serial.print(" Gateway: ");
+  Serial.print(F(" Gateway: "));
   Serial.println(Ethernet.gatewayIP());
   delay(1000);
   //Initialize sensors
-  Serial.print("Initializing sensors...");
+  Serial.print(F("Initializing sensors..."));
   Wire.begin();
   Wire.beginTransmission(UV_ADDR);
   Wire.write((IT_1<<2) | 0x02);
@@ -75,9 +76,9 @@ void setup() {
   HDC.begin(HDC100X_TEMP_HUMI,HDC100X_14BIT,HDC100X_14BIT,DISABLE);
   TSL.begin();
   BMP.begin();
-  BMP.setOversampling(2);
-  Serial.println("done!");
-  Serial.println("Starting loop.");
+  BMP.setOversampling(3);
+  Serial.println(F("done!"));
+  Serial.println(F("Starting loop."));
   temperature = HDC.getTemp();
 }
 
@@ -93,45 +94,45 @@ void loop()
   if (millis() - oldTime > postingInterval) {
     oldTime = millis();   
     //-----Pressure-----//
-    Serial.println("Posting pressure");
+    Serial.println(F("Posting pressure"));
     messTyp = 2;
     char result = BMP.startMeasurment();
     if(result!=0){
       delay(result);
       result = BMP.getTemperatureAndPressure(tempBaro,pressure);
       postObservation(pressure, PRESSURESENSOR_ID, SENSEBOX_ID); 
-      Serial.print("Temp_baro = ");Serial.println(tempBaro,2);
-      Serial.print("Pressure  = ");Serial.println(pressure,2);
+      Serial.print(F("Temp_baro = "));Serial.println(tempBaro,2);
+      Serial.print(F("Pressure  = "));Serial.println(pressure,2);
     } else {
-      Serial.print("Error: ");Serial.println((int)BMP.getError());
+      Serial.print(F("Error: "));Serial.println((int)BMP.getError());
     }
     delay(2000); 
     //-----Humidity-----//
-    Serial.println("Posting humidity");
+    Serial.println(F("Posting humidity"));
     messTyp = 2;
     humidity = HDC.getHumi();
-    Serial.print("Humidity = "); Serial.println(humidity);
+    Serial.print(F("Humidity = ")); Serial.println(humidity);
     postObservation(humidity, HUMISENSOR_ID, SENSEBOX_ID); 
     delay(2000);
     //-----Temperature-----//
-    Serial.println("Posting temperature");
+    Serial.println(F("Posting temperature"));
     messTyp = 2;
     temperature = HDC.getTemp();
     //Serial.println(temperature,2);
-    Serial.print("Temperature = ");Serial.println(temperature);
+    Serial.print(F("Temperature = "));Serial.println(temperature);
     postObservation(temperature, TEMPSENSOR_ID, SENSEBOX_ID); 
     delay(2000);  
     //-----Lux-----//
-    Serial.println("Posting illuminance");
+    Serial.println(F("Posting illuminance"));
     messTyp = 1;
     lux = TSL.readLux();
-    Serial.print("Illumi = "); Serial.println(lux);
+    Serial.print(F("Illumi = ")); Serial.println(lux);
     postObservation(lux, LUXSENSOR_ID, SENSEBOX_ID);
     delay(2000);
     //UV intensity
     messTyp = 1;
     uv = getUV();
-    Serial.print("UV = "); Serial.println(uv);
+    Serial.print(F("UV = ")); Serial.println(uv);
     postObservation(uv, UVSENSOR_ID, SENSEBOX_ID);
   }
 }
@@ -143,24 +144,24 @@ void postObservation(float measurement, String sensorId, String boxId){
   Serial.println(obs); 
   //json must look like: {"value":"12.5"} 
   //post observation to: http://opensensemap.org:8000/boxes/boxId/sensorId
-  Serial.println("connecting..."); 
+  Serial.println(F("connecting...")); 
   String value = "{\"value\":"; 
   value += obs; 
   value += "}";
   if (client.connect(server, 8000)) 
   {
-    Serial.println("connected"); 
+    Serial.println(F("connected")); 
     // Make a HTTP Post request: 
-    client.print("POST /boxes/"); 
+    client.print(F("POST /boxes/")); 
     client.print(boxId);
-    client.print("/"); 
+    client.print(F("/")); 
     client.print(sensorId); 
-    client.println(" HTTP/1.1"); 
+    client.println(F(" HTTP/1.1")); 
     // Send the required header parameters 
-    client.println("Host:opensensemap.org"); 
-    client.println("Content-Type: application/json"); 
-    client.println("Connection: close");  
-    client.print("Content-Length: "); 
+    client.println(F("Host:opensensemap.org")); 
+    client.println(F("Content-Type: application/json")); 
+    client.println(F("Connection: close"));  
+    client.print(F("Content-Length: ")); 
     client.println(value.length()); 
     client.println(); 
     // Send the data
@@ -185,7 +186,7 @@ void waitForResponse()
     if (!client.connected()) 
     {
       Serial.println();
-      Serial.println("disconnecting."); 
+      Serial.println(F("disconnecting.")); 
       client.stop(); 
       repeat = false; 
     } 
