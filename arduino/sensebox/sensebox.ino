@@ -25,6 +25,19 @@ Email: support@sensebox.de
 #define PRESSURESENSOR_ID "5719c4037514d05c121e3180"
 #define LUXSENSOR_ID "5719c4037514d05c121e317f"
 #define UVSENSOR_ID "5719c4037514d05c121e317e"
+#define NIEDERSCHLAGSSENSOR_ID "572135af24a2dbec11b57203"
+
+// niederschlag
+#define PIN1 5
+#define PIN2 4
+#define MILLILITER_PRO_KIPPUNG 60
+// wait one hour to sense rain: 3600000
+#define MILLISEKUNDEN_BIS_ZUR_NEUEN_MESSUNG 10000
+#define NIEDERSCHLAGSFLAECHE_IN_CM2 100
+uint32_t milliliter_gekippt;
+uint32_t start_der_niederschalgsmessung;
+bool war_schon_bei_PIN1;
+
 
 //Configure ethernet connection
 IPAddress myIp(192, 168, 137, 42);
@@ -80,6 +93,7 @@ void setup() {
   Serial.println(F("done!"));
   Serial.println(F("Starting loop."));
   temperature = HDC.getTemp();
+  setup_niederschlag();
 }
 
 void loop()
@@ -135,6 +149,7 @@ void loop()
     Serial.print(F("UV = ")); Serial.println(uv);
     postObservation(uv, UVSENSOR_ID, SENSEBOX_ID);
   }
+  loop_niederschlag();
 }
 
 void postObservation(float measurement, String sensorId, String boxId){ 
@@ -210,4 +225,48 @@ uint16_t getUV(){
 
   return uvValue*5;
 }
+
+//////////////////// Niederschlag ///////////////////////
+
+
+
+
+void setup_niederschlag() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  pinMode(PIN1, INPUT);
+  pinMode(PIN2, INPUT);
+  digitalWrite(PIN1, HIGH);
+  digitalWrite(PIN2, HIGH);
+  milliliter_gekippt = 0;
+  war_schon_bei_PIN1 = false;
+  start_der_niederschalgsmessung = millis();
+}
+
+
+void loop_niederschlag() {
+  // put your main code here, to run repeatedly:
+  if (digitalRead(PIN1) == LOW) {
+    war_schon_bei_PIN1 = true;
+  }
+  if (digitalRead(PIN2) == LOW && war_schon_bei_PIN1) {
+    milliliter_gekippt += MILLILITER_PRO_KIPPUNG;
+    war_schon_bei_PIN1 = false;
+    Serial.print(F("gekippt: ")); Serial.print(milliliter_gekippt); Serial.println(F("ml"));
+  }
+  if (millis() - start_der_niederschalgsmessung > MILLISEKUNDEN_BIS_ZUR_NEUEN_MESSUNG) {
+     Serial.println(F("Neuer Niederschlagswert: ")); Serial.print(milliliter_gekippt); Serial.println(F("ml"));
+     double niederschlag_in_litern_pro_quadratmeter_pro_stunde = 
+         (double)milliliter_gekippt / 1000.0 * // milliliter -> liter
+         10000.0 / NIEDERSCHLAGSFLAECHE_IN_CM2 * 
+         3600000.0 / MILLISEKUNDEN_BIS_ZUR_NEUEN_MESSUNG;  // cm2 -> m2
+     Serial.print(F("Niederschlag in l/m2/h=")); 
+     Serial.println(niederschlag_in_litern_pro_quadratmeter_pro_stunde);
+     milliliter_gekippt = 0;
+     start_der_niederschalgsmessung = millis();
+     postObservation(niederschlag_in_litern_pro_quadratmeter_pro_stunde, NIEDERSCHLAGSSENSOR_ID, SENSEBOX_ID); 
+  }
+}
+
+
 
