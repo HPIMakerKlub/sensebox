@@ -3,15 +3,15 @@ Kippwaage_v0.4
 
 TODO: 
 
-- [ ] Wippenboden neu machen, da Zacken fehlen
-- [ ] weniger Zacken, da die Zeit kosten
-- [ ] Schrift ist nutzlos, da zu klein
-- [ ] Auf falsche Joins überprüfen, wie beim Wippenboden
-- [ ] Wasser hat eine Höhe von 2-3mm das wird bei der Wippe nicht berücksichigt, da ist es 1mm. Den Wippenschwung rausnehmen
-- [ ] Abtropf zu klein, z.B. besser den trichter bis hinein ragen lassen
-- [ ] Aufhängung der Wippe stabiler machen, längeres Loch 0.5mm
-- [ ] Löcher in verschiedenen Höhen für die Wippenauflagedrähte
-- [ ] Wippenabstandshalter können nicht immer bis rein gedrückt werden, sie sollten verlängert werden.
+- [x] Wippenboden neu machen, da Zacken fehlen
+- [x] weniger Zacken, da die Zeit kosten
+- [x] Schrift ist nutzlos, da zu klein
+- [x] Auf falsche Joins überprüfen, wie beim Wippenboden
+- [x] Wasser hat eine Höhe von 2-3mm das wird bei der Wippe nicht berücksichigt, da ist es 1mm. Den Wippenschwung rausnehmen
+- [x] Abtropf zu klein, z.B. besser den trichter bis hinein ragen lassen
+- [x] Aufhängung der Wippe stabiler machen, längeres Loch 0.5mm
+- [x] Löcher in verschiedenen Höhen für die Wippenauflagedrähte
+- [x] Wippenabstandshalter können nicht immer bis rein gedrückt werden, sie sollten verlängert werden.
 
 Kippwaage_v0.3
 ---------------
