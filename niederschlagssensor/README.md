@@ -1,5 +1,18 @@
+Kippwaage_v0.5
+--------------
+
+TODO:
+
+- [ ] Viereckshalter dicker machen - es ist platz und er ist grade mal 1mm dick
+
 Kippwaage_v0.4
----------------
+--------------
+
+**Build ??**
+
+- Material: 1mm acryl
+- Schnittbreite 0.2mm
+- Schnittzeit: 3min16sec
 
 TODO: 
 
@@ -14,7 +27,7 @@ TODO:
 - [x] Wippenabstandshalter können nicht immer bis rein gedrückt werden, sie sollten verlängert werden.
 
 Kippwaage_v0.3
----------------
+--------------
 
 **Build Failing**
 
@@ -23,7 +36,7 @@ Kippwaage_v0.3
 - Schnittzeit: 7min15sec
 
 Kippwaage_v0.2
----------------
+--------------
 
 **Build Failing**
 
@@ -32,7 +45,7 @@ Kippwaage_v0.2
 - Schnittzeit: 7min39sec
 
 Kippwaage_v0.1
----------------
+--------------
 
 **Build Failing**
 
