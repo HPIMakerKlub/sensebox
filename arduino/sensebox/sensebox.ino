@@ -40,7 +40,7 @@ bool war_schon_bei_PIN1;
 
 
 //Configure ethernet connection
-IPAddress myIp(192, 168, 137, 42);
+IPAddress myIp(192, 168, 42, 42);
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 char server[] = "www.opensensemap.org";
 EthernetClient client;
@@ -173,7 +173,8 @@ void postObservation(float measurement, String sensorId, String boxId){
     client.print(sensorId); 
     client.println(F(" HTTP/1.1")); 
     // Send the required header parameters 
-    client.println(F("Host:opensensemap.org")); 
+    client.print(F("Host: "));
+    client.println(server);
     client.println(F("Content-Type: application/json")); 
     client.println(F("Connection: close"));  
     client.print(F("Content-Length: ")); 
