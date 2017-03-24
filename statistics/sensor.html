@@ -277,7 +277,7 @@ $(function () {
     if (!senseBoxID) {
         alert("Please set the parameter senseBoxID!");
     }
-    var senseBoxURL = "http://api.opensensemap.org/boxes/" + senseBoxID;
+    var senseBoxURL = "https://api.opensensemap.org/boxes/" + senseBoxID;
     requestJSON(senseBoxURL, function(box) {
         document.title = box.name;
     });
