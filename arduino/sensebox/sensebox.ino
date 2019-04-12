@@ -107,6 +107,9 @@ void loop()
 
   if (millis() - oldTime > postingInterval) {
     oldTime = millis();   
+    // Maintain Ethernet DHCP Lease //
+    // see https://forum.sensebox.de/t/keine-daten-mehr-nach-ein-paar-tagen-betrieb/345/7?u=niccokunzmann
+    Ethernet.maintain();
     //-----Pressure-----//
     Serial.println(F("Posting pressure"));
     messTyp = 2;
